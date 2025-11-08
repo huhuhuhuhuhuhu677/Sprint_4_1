@@ -1,10 +1,7 @@
-import org.openqa.selenium.By;
+//Локаторы и код работы с WebDriver перемещены в pages
+
 import pages.MainPage;
 import org.junit.Test;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
-import java.time.Duration;
-import java.util.ArrayList;
 import static org.junit.Assert.assertTrue;
 
 public class NavigationTest extends BaseTest {
@@ -12,12 +9,9 @@ public class NavigationTest extends BaseTest {
     @Test
     public void testSamokatLogoNavigation() {
         MainPage mainPage = new MainPage(driver);
+
         mainPage.clickSamokatLogo();
-
-        new WebDriverWait(driver, Duration.ofSeconds(5))
-                .until(ExpectedConditions.visibilityOfElementLocated(
-                        By.className("Home_FAQ__3uVm4")));
-
+        mainPage.waitForMainPageLoad();
         assertTrue("После клика на логотип Самоката не остались на главной странице",
                 mainPage.isPageLoaded());
     }
@@ -26,20 +20,20 @@ public class NavigationTest extends BaseTest {
     public void testYandexLogoNavigation() {
         MainPage mainPage = new MainPage(driver);
 
+        String originalWindow = mainPage.getCurrentWindowHandle();
+
+        int originalWindowCount = mainPage.getWindowsCount();
+
         mainPage.clickYandexLogo();
+        mainPage.waitForNewWindow(originalWindowCount);
 
-        new WebDriverWait(driver, Duration.ofSeconds(5))
-                .until(ExpectedConditions.numberOfWindowsToBe(2));
+        mainPage.switchToNewWindow();
 
-        ArrayList<String> tabs = new ArrayList<>(driver.getWindowHandles());
-        driver.switchTo().window(tabs.get(1));
+        assertTrue("Не открылась страница Яндекса",
+                mainPage.isYandexPage());
 
-        new WebDriverWait(driver, Duration.ofSeconds(5))
-                .until(ExpectedConditions.urlContains("yandex"));
+        mainPage.closeCurrentWindow();
 
-        String currentUrl = driver.getCurrentUrl();
-        assertTrue("Не открылась страница Яндекса. Текущий URL: " + currentUrl,
-                currentUrl.contains("yandex") || currentUrl.contains("dzen"));
-
+        mainPage.switchToWindow(originalWindow);
     }
 }

@@ -1,3 +1,7 @@
+//Добавлена аннотация для параметризованных тестов
+//Тест больше н падает
+
+
 import pages.MainPage;
 import pages.OrderPage;
 import org.junit.Test;
@@ -5,7 +9,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import java.util.Arrays;
 import java.util.Collection;
-import static org.junit.Assert.assertTrue;
 
 @RunWith(Parameterized.class)
 public class OrderTest extends BaseTest {
@@ -31,7 +34,7 @@ public class OrderTest extends BaseTest {
         this.buttonLocation = buttonLocation;
     }
 
-    @Parameterized.Parameters
+    @Parameterized.Parameters(name = "Заказ через {7} кнопку: {0} {1}")
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][] {
                 {"Ибрагим", "Ибрагимов", "ул. Пионеров, 1", "+79109111213",
@@ -46,20 +49,25 @@ public class OrderTest extends BaseTest {
         MainPage mainPage = new MainPage(driver);
         OrderPage orderPage = new OrderPage(driver);
 
+        // Принимаем куки перед началом теста
+        mainPage.acceptCookies();
+
+        // Выбор кнопки заказа в зависимости от параметра
         if ("header".equals(buttonLocation)) {
+            System.out.println("Кликаем на верхнюю кнопку заказа");
             mainPage.clickOrderButtonHeader();
         } else {
+            System.out.println("Кликаем на нижнюю кнопку заказа");
             mainPage.clickOrderButtonFooter();
         }
 
+        // Заполнение формы
         orderPage.waitForOrderPageLoad();
-        orderPage.fillFirstPage(name, surname, address, phone);
-        orderPage.clickNextButton();
-        orderPage.fillSecondPage(date, "сутки", color, comment);
+        orderPage.fillOrderForm(name, surname, address, phone, date, "сутки", color, comment);
         orderPage.clickOrderButton();
         orderPage.clickConfirmButton();
 
-        assertTrue("Сообщение об успешном заказе не отображается",
-                orderPage.isSuccessMessageDisplayed());
+        // Проверка подтверждения заказа
+        orderPage.checkOrderConfirm();
     }
 }
